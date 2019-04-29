@@ -56,7 +56,6 @@ function * announceUnlocksSaga() {
 				announced.push(scene);
 			}
 		}
-		yield call(cb.drawPanel);
 	}
 }
 
