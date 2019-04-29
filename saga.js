@@ -95,9 +95,9 @@ function * collectTokensSaga() {
 
 				const multiplier = yield select(getInfaltionMultiplier);
 				if (multiplier !== 0) {
-					const available = yield select(getAvailableScenes);
-					const subsidy = amount * multiplier / available.length;
-					for (const otherScene of available) {
+					const scheduled = yield select(getScheduledScenes);
+					const subsidy = amount * multiplier / scheduled.length;
+					for (const otherScene of scheduled) {
 						yield put(addCollectedTokens(otherScene, subsidy));
 					}
 				}
