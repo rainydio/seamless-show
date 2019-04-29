@@ -20,7 +20,6 @@ import {
 	getUnlockedScenes,
 	getByOption,
 	getInfaltionMultiplier,
-	getAvailableScenes,
 	getScheduledScenes,
 	isWrappingUp,
 	getCountdownFrom,
