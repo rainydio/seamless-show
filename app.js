@@ -30,33 +30,14 @@ import {
 const count = 20;
 
 (function () {
-	cb["settings_choices"] = [{
-		label: "Inflation",
-		name: "inflation",
-		type: "int",
-		required: true,
-		defaultValue: 0,
-	}, {
-		label: "Countdown",
-		name: "countdownFrom",
-		type: "int",
-		required: true,
-		minValue: 15,
-		defaultValue: 30,
-	}, {
+	cb["settings_choices"] = [];
+	cb["settings_choices"].push({
 		label: "Subject template",
 		name: "subjectTemplate",
 		type: "str",
 		required: false,
 		defaultValue: "{scene} | Seamless Show",
-	}, {
-		label: "Tip label",
-		name: "tipLabel",
-		type: "str",
-		required: true,
-		defaultValue: "Vote for next performance",
-	}];
-
+	});
 	for (let i = 1; i <= count; i++) {
 		cb["settings_choices"].push({
 			label: String(i),
@@ -65,6 +46,28 @@ const count = 20;
 			required: false,
 		});
 	}
+	cb["settings_choices"].push({
+		label: "Tip label",
+		name: "tipLabel",
+		type: "str",
+		required: true,
+		defaultValue: "Vote for next performance",
+	});
+	cb["settings_choices"].push({
+		label: "Countdown",
+		name: "countdownFrom",
+		type: "int",
+		required: true,
+		minValue: 15,
+		defaultValue: 30,
+	});
+	cb["settings_choices"].push({
+		label: "Inflation",
+		name: "inflation",
+		type: "int",
+		required: true,
+		defaultValue: 0,
+	});
 })();
 
 const getStore = memoize(() => {
