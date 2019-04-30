@@ -1,5 +1,9 @@
-export const setInflation = (inflation) => {
-	return { type: "INFLATION_SET", inflation };
+export const setTaxPercentage = (taxPercentage) => {
+	return { type: "TAX_PERCENTAGE_SET", taxPercentage };
+};
+
+export const setSubsidyPercentage = (subsidyPercentage) => {
+	return { type: "SUBSIDY_PERCENTAGE_SET", subsidyPercentage };
 };
 
 export const setCountdownFrom = (countdownFrom) => {
@@ -14,63 +18,54 @@ export const setTipLabel = (tipLabel) => {
 	return { type: "TIP_LABEL_SET", tipLabel };
 };
 
-export const setScene = (scene, goal = null, maxCount = null, maxCountLength = null) => {
-	return { type: "SCENE_SET", scene, goal, maxCount, maxCountLength };
+export const setEnabled = (tipOption, enabled) => {
+	return { type: "TIP_OPTION_ENABLED_SET", tipOption, enabled };
 };
 
-export const removeScene = (scene) => {
-	return { type: "SCENE_REMOVE", scene };
+export const setGoal = (tipOption, goal) => {
+	return { type: "GOAL_SET", tipOption, goal };
+};
+
+export const removeGoal = (tipOption) => {
+	return { type: "GOAL_REMOVE", tipOption };
+};
+
+export const setLimit = (tipOption, count, length) => {
+	return { type: "LIMIT_SET", tipOption, count, length };
+};
+
+export const removeLimit = (tipOption) => {
+	return { type: "LIMIT_REMOVE", tipOption };
 };
 
 export const addTotalTokens = (amount) => {
 	return { type: "TOTAL_TOKENS_ADD", amount };
 };
 
-export const addCollectedTokens = (scene, amount) => {
-	return { type: "COLLECTED_TOKENS_ADD", scene, amount };
+export const addBudgetTokens = (amount) => {
+	return { type: "BUDGET_TOKENS_ADD", amount };
 };
 
-export const resetCollectedTokens = (scene) => {
-	return { type: "COLLECTED_TOKENS_RESET", scene };
+export const removeBudgetTokens = (amount) => {
+	return { type: "BUDGET_TOKENS_REMOVE", amount };
 };
 
-export const addPerformance = (scene) => {
-	return { type: "PERFORMANCE_ADD", scene };
+export const addCollectedTokens = (tipOption, amount) => {
+	return { type: "COLLECTED_TOKENS_ADD", tipOption, amount };
+};
+
+export const resetCollectedTokens = (tipOption) => {
+	return { type: "COLLECTED_TOKENS_RESET", tipOption };
 };
 
 export const setCountdownLeft = (countdownLeft) => {
 	return { type: "COUNTDOWN_LEFT_SET", countdownLeft };
 };
 
-export const setWrappingUp = (wrappingUp) => {
-	return { type: "WRAPPING_UP_SET", wrappingUp };
+export const addPerformance = (tipOption) => {
+	return { type: "PERFORMANCE_ADD", tipOption };
 };
 
-export const disableScene = (scene) => {
-	return { type: "SCENE_DISABLE", scene };
-};
-
-export const enableScene = (scene) => {
-	return { type: "SCENE_ENABLE", scene };
-};
-
-export const setupScene = (sceneConfig) => {
-	return { type: "SCENE_SETUP", sceneConfig };
-};
-
-
-export const startScene = (scene) => {
-	return { type: "SCENE_START", scene };
-};
-
-export const startNextSceneCountdown = () => {
-	return { type: "SCENE_NEXT_COUNTDOWN_START" };
-};
-
-export const showMenu = (username) => {
-	return { type: "MENU_SHOW", username };
-};
-
-export const receiveTip = (username, amount, message) => {
-	return { type: "TIP_RECEIVE", username, amount, message };
+export const setShowEnding = (showEnding) => {
+	return { type: "SHOW_ENDING_SET", showEnding };
 };

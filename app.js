@@ -1,31 +1,23 @@
 import cb from "chaturbate";
 import memoize from "memoize-weak";
 import { createStore, applyMiddleware } from "redux";
-import createSagaMiddleware from "redux-saga";
+import thunk from "redux-thunk";
 import reducer from "./reducer";
-import saga from "./saga";
+import { getTipLabel, getTipOptionLabels, getPanel } from "./selectors";
 import {
-	setInflation,
-	setCountdownFrom,
-	setTipLabel,
-	setSubjectTemplate,
-	setupScene,
-	removeScene,
-	enableScene,
-	disableScene,
-	setWrappingUp,
-	startScene,
-	startNextSceneCountdown,
-	showMenu,
+	loadSettings,
 	receiveTip,
-} from "./actions";
-import {
-	getTipLabel,
-} from "./selectors";
-import {
-	getTipOptions,
-	getPanel,
-} from "./messages";
+	showMenu,
+	setupAdvancedOptions,
+	setupTipOption,
+	updateSubjectTemplate,
+	updateTipLabel,
+	disableTipOption,
+	finishShow,
+	continueShow,
+	startPerformance,
+	startNextPerformanceCountdown,
+} from "./thunks";
 
 const count = 20;
 
@@ -35,17 +27,9 @@ const count = 20;
 		label: "Subject template",
 		name: "subjectTemplate",
 		type: "str",
-		required: false,
-		defaultValue: "{scene} | Seamless Show",
+		required: true,
+		defaultValue: "{performance} | Seamless Show",
 	});
-	for (let i = 1; i <= count; i++) {
-		cb["settings_choices"].push({
-			label: String(i),
-			name: "scene" + String(i),
-			type: "str",
-			required: false,
-		});
-	}
 	cb["settings_choices"].push({
 		label: "Tip label",
 		name: "tipLabel",
@@ -53,37 +37,33 @@ const count = 20;
 		required: true,
 		defaultValue: "Vote for next performance",
 	});
+	for (let i = 1; i <= count; i++) {
+		cb["settings_choices"].push({
+			label: String(i),
+			name: "tipOption" + String(i),
+			type: "str",
+			required: false,
+		});
+	}
 	cb["settings_choices"].push({
-		label: "Countdown",
-		name: "countdownFrom",
-		type: "int",
-		required: true,
-		minValue: 15,
-		defaultValue: 30,
-	});
-	cb["settings_choices"].push({
-		label: "Inflation",
-		name: "inflation",
-		type: "int",
-		required: true,
-		defaultValue: 0,
+		label: "Advanced options",
+		name: "advancedOptions",
+		type: "str",
+		required: false,
+		defaultValue: "",
 	});
 })();
 
 const getStore = memoize(() => {
-	const onError = (error, { sagaStack }) => {
-		cb.sendNotice([error.message, error.stack, sagaStack].join("\n\n"), cb.room_slug);
-	};
-	const sagaMiddleware = createSagaMiddleware({ onError });
-	const store = createStore(reducer, applyMiddleware(sagaMiddleware));
-	sagaMiddleware.run(saga);
+	const store = createStore(reducer, applyMiddleware(thunk));
+	store.dispatch(loadSettings());
 	return store;
 });
 
 cb.tipOptions(() => {
 	const store = getStore();
 	const label = getTipLabel(store.getState());
-	const options = getTipOptions(store.getState());
+	const options = getTipOptionLabels(store.getState()).map(l => ({ label: l }));
 	return { label, options };
 });
 
@@ -103,6 +83,7 @@ cb.onEnter((evt) => {
 	store.dispatch(showMenu(username));
 });
 
+
 cb.onMessage((evt) => {
 	const store = getStore();
 	const username = evt["user"];
@@ -116,42 +97,33 @@ cb.onMessage((evt) => {
 		evt["X-Spam"] = true;
 
 		switch (cmd) {
-			case "/inflation":
-				store.dispatch(setInflation(parseFloat(arg)));
-				break;
-			case "/countdown":
-				store.dispatch(setCountdownFrom(parseInt(arg)));
+			case "/config":
+				store.dispatch(setupAdvancedOptions(arg));
 				break;
 			case "/subject":
-				store.dispatch(setSubjectTemplate(arg));
+				store.dispatch(updateSubjectTemplate(arg));
 				break;
 			case "/tiplabel":
-				store.dispatch(setTipLabel(arg));
-				break;
-			case "/setup":
-				store.dispatch(setupScene(arg));
-				break;
-			case "/remove":
-				store.dispatch(removeScene(arg));
+				store.dispatch(updateTipLabel(arg));
 				break;
 			case "/enable":
-				store.dispatch(enableScene(arg));
+				store.dispatch(setupTipOption(arg));
 				break;
 			case "/disable":
-				store.dispatch(disableScene(arg));
+				store.dispatch(disableTipOption(arg));
 				break;
-			case "/wrapup":
-				store.dispatch(setWrappingUp(true));
+			case "/finish":
+				store.dispatch(finishShow());
 				break;
 			case "/continue":
-				store.dispatch(setWrappingUp(false));
+				store.dispatch(continueShow());
 				break;
 			case "/start":
-				store.dispatch(startScene(arg));
+				store.dispatch(startPerformance(arg));
 				break;
 			case "/next":
 			case "/":
-				store.dispatch(startNextSceneCountdown(arg));
+				store.dispatch(startNextPerformanceCountdown(arg));
 				break;
 			default:
 				evt["X-Spam"] = false;

@@ -1,10 +1,19 @@
 import { combineReducers } from "redux";
 import omit from "just-omit";
 
-const inflation = (state = 1, action) => {
+const taxPercentage = (state = 100, action) => {
 	switch (action.type) {
-		case "INFLATION_SET":
-			return action.inflation;
+		case "TAX_PERCENTAGE_SET":
+			return action.taxPercentage;
+		default:
+			return state;
+	}
+};
+
+const subsidyPercentage = (state = 25, action) => {
+	switch (action.type) {
+		case "SUBSIDY_PERCENTAGE_SET":
+			return action.subsidyPercentage;
 		default:
 			return state;
 	}
@@ -37,18 +46,41 @@ const tipLabel = (state = "", action) => {
 	}
 };
 
-const scenes = (state = { }, action) => {
+const tipOptions = (state = { }, action) => {
 	switch (action.type) {
-		case "SCENE_SET":
+		case "TIP_OPTION_ENABLED_SET":
 			return Object.assign({ }, state, {
-				[action.scene]: {
-					goal: action.goal,
-					maxCount: action.maxCount,
-					maxCountLength: action.maxCountLength,
+				[action.tipOption]: action.enabled,
+			});
+		default:
+			return state;
+	}
+};
+
+const goals = (state = { }, action) => {
+	switch (action.type) {
+		case "GOAL_SET":
+			return Object.assign({ }, state, {
+				[action.tipOption]: action.goal,
+			});
+		case "GOAL_REMOVE":
+			return omit(state, action.tipOption);
+		default:
+			return state;
+	}
+};
+
+const limits = (state = { }, action) => {
+	switch (action.type) {
+		case "LIMIT_SET":
+			return Object.assign({ }, state, {
+				[action.tipOption]: {
+					count: action.count,
+					length: action.length,
 				},
 			});
-		case "SCENE_REMOVE":
-			return omit(state, action.scene);
+		case "LIMIT_REMOVE":
+			return omit(state, action.tipOption);
 		default:
 			return state;
 	}
@@ -63,25 +95,27 @@ const totalTokens = (state = 0, action) => {
 	}
 };
 
-const collectedTokens = (state = { }, action) => {
+const budgetTokens = (state = 0, action) => {
 	switch (action.type) {
-		case "COLLECTED_TOKENS_ADD":
-			return Object.assign({ }, state, {
-				[action.scene]: action.amount + (state[action.scene] || 0),
-			});
-		case "COLLECTED_TOKENS_RESET":
-			return Object.assign({ }, state, {
-				[action.scene]: 0,
-			});
+		case "BUDGET_TOKENS_ADD":
+			return state + action.amount;
+		case "BUDGET_TOKENS_REMOVE":
+			return state - action.amount;
 		default:
 			return state;
 	}
 };
 
-const performances = (state = [], action) => {
+const collectedTokens = (state = { }, action) => {
 	switch (action.type) {
-		case "PERFORMANCE_ADD":
-			return [action.scene, ...state];
+		case "COLLECTED_TOKENS_ADD":
+			return Object.assign({ }, state, {
+				[action.tipOption]: action.amount + (state[action.tipOption] || 0),
+			});
+		case "COLLECTED_TOKENS_RESET":
+			return Object.assign({ }, state, {
+				[action.tipOption]: 0,
+			});
 		default:
 			return state;
 	}
@@ -96,40 +130,37 @@ const countdownLeft = (state = 0, action) => {
 	}
 };
 
-const wrappingUp = (state = false, action) => {
+const performances = (state = [], action) => {
 	switch (action.type) {
-		case "WRAPPING_UP_SET":
-			return action.wrappingUp;
+		case "PERFORMANCE_ADD":
+			return [action.tipOption, ...state];
 		default:
 			return state;
 	}
 };
 
-const disabledScenes = (state = [], action) => {
+const showEnding = (state = false, action) => {
 	switch (action.type) {
-		case "SCENE_DISABLE":
-			return Object.assign({ }, state, {
-				[action.scene]: true,
-			});
-		case "SCENE_ENABLE":
-			return Object.assign({ }, state, {
-				[action.scene]: false,
-			});
+		case "SHOW_ENDING_SET":
+			return action.showEnding;
 		default:
 			return state;
 	}
 };
 
 export default combineReducers({
-	inflation,
+	taxPercentage,
+	subsidyPercentage,
 	countdownFrom,
-	tipLabel,
 	subjectTemplate,
-	scenes,
+	tipLabel,
+	tipOptions,
+	goals,
+	limits,
 	totalTokens,
+	budgetTokens,
 	collectedTokens,
-	performances,
 	countdownLeft,
-	wrappingUp,
-	disabledScenes,
+	performances,
+	showEnding,
 });
