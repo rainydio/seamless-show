@@ -34,10 +34,6 @@ export const getTotalTokens = (state) => {
 	return state.totalTokens;
 };
 
-export const getDanglingTokens = (state, username) => {
-	return state.danglingTokens[username] || 0;
-};
-
 export const getContributedTokens = (state, tipOption) => {
 	return state.contributedTokens[tipOption] || 0;
 };
@@ -62,6 +58,10 @@ export const getPerforming = (state) => {
 	return state.performances[0] || null;
 };
 
+export const getPreviousPerformance = (state) => {
+	return state.performances[1] || null;
+};
+
 export const getPerformedAgo = (state, tipOption) => {
 	const index = state.performances.indexOf(tipOption);
 	return index === -1 ? null : index;
@@ -69,6 +69,26 @@ export const getPerformedAgo = (state, tipOption) => {
 
 export const isShowEnding = (state) => {
 	return state.showEnding;
+};
+
+export const getUserDanglingTokens = (state, username) => {
+	return state.userDanglingTokens[username] || 0;
+};
+
+export const getUsersWhoTipped = (state) => {
+	return Object.keys(state.userTotalTokens);
+};
+
+export const getUserTotalTokens = (state, username) => {
+	return state.userTotalTokens[username] || 0;
+};
+
+export const getUserPreferences = (state, username) => {
+	return Object.keys(state.userPreferences[username] || { });
+};
+
+export const isUserRateNoticeSent = (state, username) => {
+	return state.userRateNoticeSent[username] || false;
 };
 
 export const getTipOptionByTipMessage = (state, message) => {
@@ -186,6 +206,17 @@ export const getUserTokensToBeNext = (state, tipOption, username) => {
 	if (tokensToBeNext === 0) {
 		return 0;
 	}
-	const danglingTokens = getDanglingTokens(state, username);
+	const danglingTokens = getUserDanglingTokens(state, username);
 	return Math.max(1, tokensToBeNext - danglingTokens);
+};
+
+export const getRateNoticeRecipientList = (state) => {
+	const prevPerformance = getPreviousPerformance(state);
+	if (!prevPerformance) {
+		return [];
+	}
+	return getUsersWhoTipped(state)
+		.filter(username => getUserTotalTokens(state, username) >= 25)
+		.filter(username => isUserRateNoticeSent(state, username) === false)
+		.filter(username => getUserPreferences(state, username).includes(prevPerformance));
 };

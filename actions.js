@@ -28,14 +28,6 @@ export const addTotalTokens = (amount) => {
 	return { type: "TOTAL_TOKENS_ADD", amount };
 };
 
-export const addDanglingTokens = (username, amount) => {
-	return { type: "DANGLING_TOKENS_ADD", username, amount };
-};
-
-export const resetDanglingTokens = (username) => {
-	return { type: "DANGLING_TOKENS_RESET", username };
-};
-
 export const addContributedTokens = (tipOption, amount) => {
 	return { type: "CONTRIBUTED_TOKENS_ADD", tipOption, amount };
 };
@@ -78,6 +70,26 @@ export const finishShow = () => {
 
 export const continueShow = () => {
 	return { type: "SHOW_CONTINUE" };
+};
+
+export const addUserDanglingTokens = (username, amount) => {
+	return { type: "USER_DANGLING_TOKENS_ADD", username, amount };
+};
+
+export const resetUserDanglingTokens = (username) => {
+	return { type: "USER_DANGLING_TOKENS_RESET", username };
+};
+
+export const addUserTotalTokens = (username, amount) => {
+	return { type: "USER_TOTAL_TOKENS_ADD", username, amount };
+};
+
+export const setUserPreference = (username, tipOption) => {
+	return { type: "USER_PREFERENCE_SET", username, tipOption };
+};
+
+export const doneSendUserRateNotice = (username) => {
+	return { type: "USER_RATE_NOTICE_SEND_DONE", username };
 };
 
 // saga actions

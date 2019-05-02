@@ -2,7 +2,7 @@ import cb from "chaturbate";
 import compare from "just-compare";
 import {
 	getSubjectTemplate,
-	getDanglingTokens,
+	getUserDanglingTokens,
 	getGoal,
 	getCountdownFrom,
 	getCountdownLeft,
@@ -17,6 +17,7 @@ import {
 	getAvailableTipOptions,
 	getScheduledTipOptions,
 	getOnCooldownTipOptions,
+	getPreviousPerformance,
 } from "./selectors";
 
 const p = (n, str) => {
@@ -92,7 +93,7 @@ const getTipOptionsTipOptionLabel = (state, tipOption, username) => {
 };
 
 export const getTipOptions = (state, username) => {
-	const dangling = getDanglingTokens(state, username);
+	const dangling = getUserDanglingTokens(state, username);
 	const label = dangling === 0
 		? "Vote for next performance"
 		: `Priced in ${dangling} ${p(dangling, "token")} that will be added to your vote`;
@@ -146,7 +147,12 @@ export const sendGoalReachedNotice = (state, tipOption) => {
 	cb.sendNotice(notice);
 };
 
-export const sendDanglingTokensNotice = (state, username) => {
-	const danglingTokens = getDanglingTokens(state, username);
-	cb.sendNotice(`${danglingTokens} ${p(danglingTokens, "token")} will be added to your next vote`, username);
+export const sendUserDanglingTokensNotice = (state, username) => {
+	const danglingTokens = getUserDanglingTokens(state, username);
+	const notice = `${danglingTokens} ${p(danglingTokens, "token")} will be added to your next vote`;
+	cb.sendNotice(notice, username);
+};
+
+export const sendRateNotice = (state, username) => {
+	cb.sendNotice("Please rate performance using buttons below", username);
 };

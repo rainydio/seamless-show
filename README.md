@@ -1,6 +1,6 @@
 # Seamless Show
 
-Chaturbate *menu* app with auction elements in it. Whatever collects most tokens is performed next. Once performed scene token counter is reset.
+Chaturbate *menu* app with auction element. Whatever collects most tokens is performed next.
 
 ### Building
 

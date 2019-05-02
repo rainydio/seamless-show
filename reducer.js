@@ -63,19 +63,6 @@ const totalTokens = (state = 0, action) => {
 	}
 };
 
-const danglingTokens = (state = { }, action) => {
-	switch (action.type) {
-		case "DANGLING_TOKENS_ADD":
-			return Object.assign({ }, state, {
-				[action.username]: action.amount + (state[action.username] || 0),
-			});
-		case "DANGLING_TOKENS_RESET":
-			return omit(state, action.username);
-		default:
-			return state;
-	}
-};
-
 const contributedTokens = (state = { }, action) => {
 	switch (action.type) {
 		case "CONTRIBUTED_TOKENS_ADD":
@@ -151,6 +138,54 @@ const showEnding = (state = false, action) => {
 	}
 };
 
+const userDanglingTokens = (state = { }, action) => {
+	switch (action.type) {
+		case "USER_DANGLING_TOKENS_ADD":
+			return Object.assign({ }, state, {
+				[action.username]: action.amount + (state[action.username] || 0),
+			});
+		case "USER_DANGLING_TOKENS_RESET":
+			return omit(state, action.username);
+		default:
+			return state;
+	}
+};
+
+const userTotalTokens = (state = { }, action) => {
+	switch (action.type) {
+		case "USER_TOTAL_TOKENS_ADD":
+			return Object.assign({ }, state, {
+				[action.username]: action.amount + (state[action.username] || 0),
+			});
+		default:
+			return state;
+	}
+};
+
+const userPreferences = (state = { }, action) => {
+	switch (action.type) {
+		case "USER_PREFERENCE_SET":
+			return Object.assign({ }, state, {
+				[action.username]: Object.assign({ }, state[action.username], {
+					[action.tipOption]: true,
+				}),
+			});
+		default:
+			return state;
+	}
+};
+
+const userRateNoticeSent = (state = { }, action) => {
+	switch (action.type) {
+		case "USER_RATE_NOTICE_SEND_DONE":
+			return Object.assign({ }, state, {
+				[action.username]: true,
+			});
+		default:
+			return state;
+	}
+};
+
 export default combineReducers({
 	emaLength,
 	inflation,
@@ -158,7 +193,6 @@ export default combineReducers({
 	subjectTemplate,
 	tipOptions,
 	totalTokens,
-	danglingTokens,
 	contributedTokens,
 	roundContributedTokens,
 	emaContributedTokens,
@@ -166,4 +200,8 @@ export default combineReducers({
 	countdownLeft,
 	performances,
 	showEnding,
+	userDanglingTokens,
+	userTotalTokens,
+	userPreferences,
+	userRateNoticeSent,
 });

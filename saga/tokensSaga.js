@@ -1,10 +1,11 @@
 import { call, fork, put, takeEvery, select } from "redux-saga/effects";
-import { getEmaLength, getInflation, getTipOptionByTipMessage, getDanglingTokens, getRoundContributedTokens, getEmaContributedTokens, getScheduledTipOptions } from "../selectors";
-import { sendDanglingTokensNotice } from "../components";
+import { getEmaLength, getInflation, getTipOptionByTipMessage, getUserDanglingTokens, getRoundContributedTokens, getEmaContributedTokens, getScheduledTipOptions } from "../selectors";
+import { sendUserDanglingTokensNotice } from "../components";
 import {
 	addTotalTokens,
-	addDanglingTokens,
-	resetDanglingTokens,
+	addUserTotalTokens,
+	addUserDanglingTokens,
+	resetUserDanglingTokens,
 	addContributedTokens,
 	resetContributedTokens,
 	addRoundContributedTokens,
@@ -12,20 +13,23 @@ import {
 	setEmaContributedTokens,
 	addSubsidizedTokens,
 	resetSubsidizedTokens,
+	setUserPreference,
 } from "../actions";
 
 function * contributionsSaga() {
 	yield takeEvery("TIP_RECEIVE", function * ({ username, amount, message }) {
 		yield put(addTotalTokens(amount));
+		yield put(addUserTotalTokens(username, amount));
 		const tipOption = yield select(getTipOptionByTipMessage, message);
 
 		if (tipOption) {
-			const danglingTokens = yield select(getDanglingTokens, username);
-			yield put(resetDanglingTokens(username));
+			const danglingTokens = yield select(getUserDanglingTokens, username);
+			yield put(resetUserDanglingTokens(username));
 			yield put(addContributedTokens(tipOption, amount + danglingTokens));
+			yield put(setUserPreference(username, tipOption));
 		}
 		else {
-			yield put(addDanglingTokens(username, amount));
+			yield put(addUserDanglingTokens(username, amount));
 		}
 	});
 
@@ -33,8 +37,8 @@ function * contributionsSaga() {
 		yield put(resetContributedTokens(tipOption));
 	});
 
-	yield takeEvery("DANGLING_TOKENS_ADD", function * ({ username }) {
-		yield call(sendDanglingTokensNotice, yield select(), username);
+	yield takeEvery("USER_DANGLING_TOKENS_ADD", function * ({ username }) {
+		yield call(sendUserDanglingTokensNotice, yield select(), username);
 	});
 }
 
