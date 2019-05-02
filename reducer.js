@@ -1,25 +1,25 @@
 import { combineReducers } from "redux";
 import omit from "just-omit";
 
-const taxPercentage = (state = 100, action) => {
+const emaLength = (state = 6, action) => {
 	switch (action.type) {
-		case "TAX_PERCENTAGE_SET":
-			return action.taxPercentage;
+		case "EMA_LENGTH_SET":
+			return action.emaLength;
 		default:
 			return state;
 	}
 };
 
-const subsidyPercentage = (state = 25, action) => {
+const inflation = (state = 15, action) => {
 	switch (action.type) {
-		case "SUBSIDY_PERCENTAGE_SET":
-			return action.subsidyPercentage;
+		case "INFLATION_SET":
+			return action.inflation;
 		default:
 			return state;
 	}
 };
 
-const countdownFrom = (state = 30, action) => {
+const countdownFrom = (state = 35, action) => {
 	switch (action.type) {
 		case "COUNTDOWN_FROM_SET":
 			return action.countdownFrom;
@@ -37,49 +37,17 @@ const subjectTemplate = (state = "", action) => {
 	}
 };
 
-const tipLabel = (state = "", action) => {
-	switch (action.type) {
-		case "TIP_LABEL_SET":
-			return action.tipLabel;
-		default:
-			return state;
-	}
-};
-
 const tipOptions = (state = { }, action) => {
 	switch (action.type) {
-		case "TIP_OPTION_ENABLED_SET":
-			return Object.assign({ }, state, {
-				[action.tipOption]: action.enabled,
-			});
-		default:
-			return state;
-	}
-};
-
-const goals = (state = { }, action) => {
-	switch (action.type) {
-		case "GOAL_SET":
-			return Object.assign({ }, state, {
-				[action.tipOption]: action.goal,
-			});
-		case "GOAL_REMOVE":
-			return omit(state, action.tipOption);
-		default:
-			return state;
-	}
-};
-
-const limits = (state = { }, action) => {
-	switch (action.type) {
-		case "LIMIT_SET":
+		case "TIP_OPTION_SET":
 			return Object.assign({ }, state, {
 				[action.tipOption]: {
-					count: action.count,
-					length: action.length,
+					goal: action.goal,
+					limit: action.limit,
+					limitLength: action.limitLength,
 				},
 			});
-		case "LIMIT_REMOVE":
+		case "TIP_OPTION_REMOVE":
 			return omit(state, action.tipOption);
 		default:
 			return state;
@@ -95,27 +63,60 @@ const totalTokens = (state = 0, action) => {
 	}
 };
 
-const budgetTokens = (state = 0, action) => {
+const danglingTokens = (state = { }, action) => {
 	switch (action.type) {
-		case "BUDGET_TOKENS_ADD":
-			return state + action.amount;
-		case "BUDGET_TOKENS_REMOVE":
-			return state - action.amount;
+		case "DANGLING_TOKENS_ADD":
+			return Object.assign({ }, state, {
+				[action.username]: action.amount + (state[action.username] || 0),
+			});
+		case "DANGLING_TOKENS_RESET":
+			return omit(state, action.username);
 		default:
 			return state;
 	}
 };
 
-const collectedTokens = (state = { }, action) => {
+const contributedTokens = (state = { }, action) => {
 	switch (action.type) {
-		case "COLLECTED_TOKENS_ADD":
+		case "CONTRIBUTED_TOKENS_ADD":
 			return Object.assign({ }, state, {
 				[action.tipOption]: action.amount + (state[action.tipOption] || 0),
 			});
-		case "COLLECTED_TOKENS_RESET":
+		case "CONTRIBUTED_TOKENS_RESET":
+			return omit(state, action.tipOption);
+		default:
+			return state;
+	}
+};
+
+const roundContributedTokens = (state = 0, action) => {
+	switch (action.type) {
+		case "ROUND_CONTRIBUTED_TOKENS_ADD":
+			return state + action.amount;
+		case "ROUND_CONTRIBUTED_TOKENS_RESET":
+			return 0;
+		default:
+			return state;
+	}
+};
+
+const emaContributedTokens = (state = 0, action) => {
+	switch (action.type) {
+		case "EMA_CONTRIBUTED_TOKENS_SET":
+			return action.emaContributedTokens;
+		default:
+			return state;
+	}
+};
+
+const subsidizedTokens = (state = { }, action) => {
+	switch (action.type) {
+		case "SUBSIDIZED_TOKENS_ADD":
 			return Object.assign({ }, state, {
-				[action.tipOption]: 0,
+				[action.tipOption]: action.amount + (state[action.tipOption] || 0),
 			});
+		case "SUBSIDIZED_TOKENS_RESET":
+			return omit(state, action.tipOption);
 		default:
 			return state;
 	}
@@ -132,7 +133,7 @@ const countdownLeft = (state = 0, action) => {
 
 const performances = (state = [], action) => {
 	switch (action.type) {
-		case "PERFORMANCE_ADD":
+		case "PERFORMANCE_START":
 			return [action.tipOption, ...state];
 		default:
 			return state;
@@ -141,25 +142,27 @@ const performances = (state = [], action) => {
 
 const showEnding = (state = false, action) => {
 	switch (action.type) {
-		case "SHOW_ENDING_SET":
-			return action.showEnding;
+		case "SHOW_FINISH":
+			return true;
+		case "SHOW_CONTINUE":
+			return false;
 		default:
 			return state;
 	}
 };
 
 export default combineReducers({
-	taxPercentage,
-	subsidyPercentage,
+	emaLength,
+	inflation,
 	countdownFrom,
 	subjectTemplate,
-	tipLabel,
 	tipOptions,
-	goals,
-	limits,
 	totalTokens,
-	budgetTokens,
-	collectedTokens,
+	danglingTokens,
+	contributedTokens,
+	roundContributedTokens,
+	emaContributedTokens,
+	subsidizedTokens,
 	countdownLeft,
 	performances,
 	showEnding,

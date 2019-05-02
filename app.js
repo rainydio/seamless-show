@@ -1,25 +1,19 @@
 import cb from "chaturbate";
-import memoize from "memoize-weak";
-import { createStore, applyMiddleware } from "redux";
-import thunk from "redux-thunk";
-import reducer from "./reducer";
-import { getTipLabel, getTipOptionLabels, getPanel } from "./selectors";
+import { dispatch, getState } from "./store";
+import { getPanel, getTipOptions, sendMenuNotice } from "./components";
 import {
-	loadSettings,
-	receiveTip,
-	showMenu,
-	setupAdvancedOptions,
-	setupTipOption,
-	updateSubjectTemplate,
-	updateTipLabel,
-	disableTipOption,
-	finishShow,
-	continueShow,
+	setAdvancedOptions,
+	setSubjectTemplate,
+	setTipOptionByConfig,
+	removeTipOption,
+	addContributedTokens,
 	startPerformance,
 	startNextPerformanceCountdown,
-} from "./thunks";
-
-const count = 20;
+	cancelNextPerformanceCountdown,
+	finishShow,
+	continueShow,
+	receiveTip,
+} from "./actions";
 
 (function () {
 	cb["settings_choices"] = [];
@@ -30,17 +24,10 @@ const count = 20;
 		required: true,
 		defaultValue: "{performance} | Seamless Show",
 	});
-	cb["settings_choices"].push({
-		label: "Tip label",
-		name: "tipLabel",
-		type: "str",
-		required: true,
-		defaultValue: "Vote for next performance",
-	});
-	for (let i = 1; i <= count; i++) {
+	for (let i = 1; i <= 20; i++) {
 		cb["settings_choices"].push({
 			label: String(i),
-			name: "tipOption" + String(i),
+			name: "tipOption" + ("00" + String(i)).slice(-2),
 			type: "str",
 			required: false,
 		});
@@ -54,90 +41,77 @@ const count = 20;
 	});
 })();
 
-const getStore = memoize(() => {
-	const store = createStore(reducer, applyMiddleware(thunk));
-	store.dispatch(loadSettings());
-	return store;
+cb.onMessage((evt) => {
+	const username = evt["user"];
+	const message = evt["m"];
+	const mod = evt["is_mod"] || username === cb.room_slug;
+
+	const cmd = (regexp, fn) => {
+		const m = message.match(regexp);
+		if (m) {
+			fn(...m.slice(1));
+			evt["X-Spam"] = true;
+		}
+	};
+
+	if (mod) {
+		cmd(/^\/config (.*)$/, (advancedOptionsConfig) => {
+			dispatch(setAdvancedOptions(advancedOptionsConfig));
+		});
+		cmd(/^\/subject (.*)$/, (subjectTemplate) => {
+			dispatch(setSubjectTemplate(subjectTemplate));
+		});
+		cmd(/^\/enable (.*)$/, (tipOptionConfig) => {
+			dispatch(setTipOptionByConfig(tipOptionConfig));
+		});
+		cmd(/^\/disable (.*)$/, (tipOption) => {
+			dispatch(removeTipOption(tipOption));
+		});
+		cmd(/^\/contribute (.*?) (\d+)$/, (tipOption, strAmount) => {
+			dispatch(addContributedTokens(tipOption, parseInt(strAmount)));
+		});
+		cmd(/^\/start (.*?)$/, (tipOption) => {
+			dispatch(startPerformance(tipOption));
+		});
+		cmd(/^\/next$/, () => {
+			dispatch(startNextPerformanceCountdown());
+		});
+		cmd(/^\/$/, () => {
+			dispatch(startNextPerformanceCountdown());
+		});
+		cmd(/^\/cancel$/, () => {
+			dispatch(cancelNextPerformanceCountdown());
+		});
+		cmd(/^\/finish$/, () => {
+			dispatch(finishShow());
+		});
+		cmd(/^\/continue$/, () => {
+			dispatch(continueShow());
+		});
+	}
+
+	cmd(/^\/menu$/, () => {
+		sendMenuNotice(getState(), username);
+	});
 });
 
-cb.tipOptions(() => {
-	const store = getStore();
-	const label = getTipLabel(store.getState());
-	const options = getTipOptionLabels(store.getState()).map(l => ({ label: l }));
-	return { label, options };
+cb.onEnter((evt) => {
+	const username = evt["user"];
+	sendMenuNotice(getState(), username);
 });
 
 cb.onTip((evt) => {
-	const store = getStore();
 	const username = evt["from_user"];
 	const amount = parseInt(evt["amount"]);
 	const message = evt["message"];
 
-	store.dispatch(receiveTip(username, amount, message));
+	dispatch(receiveTip(username, amount, message));
 });
 
-cb.onEnter((evt) => {
-	const store = getStore();
-	const username = evt["user"];
-
-	store.dispatch(showMenu(username));
-});
-
-
-cb.onMessage((evt) => {
-	const store = getStore();
-	const username = evt["user"];
-	const message = evt["m"];
-	const mod = evt["is_mod"] || username === cb.room_slug;
-	const cmdMatch = message.match(/(^\/[a-zA-Z0-9]*)(\s.*$|$)/);
-	const cmd = cmdMatch ? cmdMatch[1].trim() : null;
-	const arg = cmdMatch ? cmdMatch[2].slice(1) : null;
-
-	if (mod && cmd) {
-		evt["X-Spam"] = true;
-
-		switch (cmd) {
-			case "/config":
-				store.dispatch(setupAdvancedOptions(arg));
-				break;
-			case "/subject":
-				store.dispatch(updateSubjectTemplate(arg));
-				break;
-			case "/tiplabel":
-				store.dispatch(updateTipLabel(arg));
-				break;
-			case "/enable":
-				store.dispatch(setupTipOption(arg));
-				break;
-			case "/disable":
-				store.dispatch(disableTipOption(arg));
-				break;
-			case "/finish":
-				store.dispatch(finishShow());
-				break;
-			case "/continue":
-				store.dispatch(continueShow());
-				break;
-			case "/start":
-				store.dispatch(startPerformance(arg));
-				break;
-			case "/next":
-			case "/":
-				store.dispatch(startNextPerformanceCountdown(arg));
-				break;
-			default:
-				evt["X-Spam"] = false;
-		}
-	}
-
-	if (cmd === "/menu" || cmd === "/tipmenu") {
-		store.dispatch(showMenu(username));
-		evt["X-Spam"] = true;
-	}
+cb.tipOptions((username) => {
+	return getTipOptions(getState(), username);
 });
 
 cb.onDrawPanel(() => {
-	const store = getStore();
-	const panel = getPanel(store.getState());
-	return panel;
+	return getPanel(getState());
 });
